@@ -43,11 +43,9 @@ public class FTPClientMav {
 				ChangeToParentDirectory(client);
 			break;
 			case(4):
-				//scan.close();
 				System.out.println("Bye!");
 			break;
 			default:
-				//scan.close();
 				System.out.println("Incorrect input number");
 				PrintListFile(client);
 				break;
@@ -61,7 +59,6 @@ public class FTPClientMav {
 		}catch(NoSuchElementException e){
 			e.printStackTrace();
 		}
-		//scan.close();
 
 	}
 	public static FTPClient FTPconnect(int ftpport) throws MalformedURLException, IOException, FTPConnectionClosedException{
