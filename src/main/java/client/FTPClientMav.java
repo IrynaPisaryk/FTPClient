@@ -15,8 +15,7 @@ import org.apache.commons.net.ftp.FTPFile;
 
 public class FTPClientMav {
 	public static void main(String[] args) throws MalformedURLException, IOException, FTPConnectionClosedException {
-		int ftpport = 21;
-		FTPClient client = FTPconnect(ftpport);
+		FTPClient client = FTPconnect();
 		PrintListFile(client);
 		FTPdisconnect(client);
 	}
@@ -61,9 +60,9 @@ public class FTPClientMav {
 		}
 
 	}
-	public static FTPClient FTPconnect(int ftpport) throws MalformedURLException, IOException, FTPConnectionClosedException{
+	public static FTPClient FTPconnect() throws MalformedURLException, IOException, FTPConnectionClosedException{
 		FTPClient client = new FTPClient();
-		client.connect("ftp.mozilla.org", ftpport);
+		client.connect("ftp.mozilla.org");
 		client.login("anonymous", "anonymous");
 		client.enterLocalPassiveMode();
 		client.setFileType(FTP.BINARY_FILE_TYPE);
