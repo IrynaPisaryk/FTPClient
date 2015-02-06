@@ -28,13 +28,18 @@ public class FTPClientMav {
 		newClient.StartFTPClient();
 	}
 	public void StartFTPClient() throws MalformedURLException, IOException{
+		boolean ftpError = false;
 		try{
 			FTPClient client = FTPconnect();
-			PrintListFile(client);
-			FTPdisconnect(client);
+			PrintListFile(client, ftpError);
+			FTPdisconnect(client, ftpError);
 		}catch(FTPConnectionClosedException e){
+			ftpError = true;
+		}
+		if(ftpError == true){
 			System.out.println("Error. FTP connection is closed. Try to restart program");
 		}
+			
 	}
 	public static FTPClient FTPconnect() throws MalformedURLException, IOException{
 		FTPClient client = new FTPClient();
@@ -44,22 +49,22 @@ public class FTPClientMav {
 		client.setFileType(FTP.BINARY_FILE_TYPE);
 		return client;
 	}
-	public static void FTPdisconnect(FTPClient client) throws IOException{
+	public static void FTPdisconnect(FTPClient client, boolean ftpError) throws IOException{
 		try{
 			client.logout();
 			client.disconnect();
 		}catch(FTPConnectionClosedException e){
-			System.out.println("Error. FTP connection is closed. Try to restart program");
+			ftpError = true;
 		}
 	}
 	public static void UserDialog(){
 		System.out.println("What you want to do?");
-		System.out.println("1. Download file(1))");
+		System.out.println("1. Download file(1)");
 		System.out.println("2. Change current directory(2)");
 		System.out.println("3. Change to parent directory(3)");
 		System.out.println("4. Exit(4)");
 	}
-	public static void PrintListFile(FTPClient client) throws IOException{
+	public static void PrintListFile(FTPClient client, boolean ftpError) throws IOException{
 
 		boolean stopProgram = false;
 		do{
@@ -78,17 +83,17 @@ public class FTPClientMav {
 			if(fileCount == ftpFiles.length){
 
 				System.out.println("What you want to do?");
-				System.out.println("1. Download file(1))");
-				System.out.println("2. Change to parent directory(2))");
+				System.out.println("1. Download file(1)");
+				System.out.println("2. Change to parent directory(2)");
 				System.out.println("3. Exit(3)");				
 				action = scan.nextLine();	
 				int actionInt = Integer.parseInt(action);				
 				switch(actionInt){
 				case(1):
-					FileDownload(client);
+					FileDownload(client, ftpError);
 				break;
 				case(2):
-					ChangeToParentDirectory(client);
+					ChangeToParentDirectory(client, ftpError);
 				break;
 				case(3):
 					stopProgram = true;
@@ -104,13 +109,13 @@ public class FTPClientMav {
 					int actionInt = Integer.parseInt(action);
 					switch(actionInt){
 					case(1):
-						FileDownload(client);
+						FileDownload(client, ftpError);
 					break;
 					case(2):				
-						ChangeCurrentDirectory(client, ftpFiles, scan);
+						ChangeCurrentDirectory(client, ftpFiles, scan, ftpError);
 					break;
 					case(3):
-						ChangeToParentDirectory(client);
+						ChangeToParentDirectory(client, ftpError);
 					break;
 					case(4):
 						System.out.println("Completed");
@@ -124,7 +129,7 @@ public class FTPClientMav {
 				}catch(NumberFormatException e){
 					System.out.println("Incorrect symbol");
 				}catch(FTPConnectionClosedException e){
-					System.out.println("Error. FTP connection is closed. Try to restart program");
+					ftpError = true;
 				}catch(NoSuchElementException e){
 					e.printStackTrace();
 				}
@@ -132,19 +137,18 @@ public class FTPClientMav {
 
 		}while(stopProgram == false);
 	}
-	public static void ChangeToParentDirectory(FTPClient client) throws IOException{
+	public static void ChangeToParentDirectory(FTPClient client, boolean ftpError) throws IOException{
 		try{
 			if(client.printWorkingDirectory().equals("/")==true){
-
 				System.out.println("This is root!");
 			}else{
 				client.changeToParentDirectory();
 			}
 		}catch(FTPConnectionClosedException e){
-			System.out.println("Error. FTP connection is closed. Try to restart program");
+			ftpError = true;
 		}
 	}
-	public static void ChangeCurrentDirectory(FTPClient client, FTPFile[] ftpFiles, Scanner scan) throws IOException{
+	public static void ChangeCurrentDirectory(FTPClient client, FTPFile[] ftpFiles, Scanner scan, boolean ftpError) throws IOException{
 		try{					
 			String newDir = null;
 			System.out.println("Enter directory name");
@@ -152,14 +156,17 @@ public class FTPClientMav {
 			for(int i = 0; i < ftpFiles.length; i++){
 				if(ftpFiles[i].getName().equals(newName)==true && ftpFiles[i].isDirectory()==true)
 					newDir = ftpFiles[i].getName();
-			}										
+			}	
+			if(newDir == null){
+				System.out.println("Incorrect directory name");
+			}
 			client.changeWorkingDirectory(newDir);
 
 		}catch(FTPConnectionClosedException e){
-			System.out.println("Error. FTP connection is closed. Try to restart program");
+			ftpError = true;
 		}
 	}
-	public static void FileDownload(FTPClient client) throws IOException{
+	public static void FileDownload(FTPClient client, boolean ftpError) throws IOException{
 		try{	
 
 			String filename = null;
@@ -174,7 +181,7 @@ public class FTPClientMav {
 					fileExist = true;
 			}
 			System.out.println("Enter the path to destination folder");
-			path = scan.nextLine();		
+			path = scan.nextLine();	
 			boolean canWrite = CanWrite(path);
 			if(canWrite == true && fileExist == true){				
 				FileOutputStream fos = null;
@@ -194,7 +201,7 @@ public class FTPClientMav {
 					}
 				}
 			}
-			else System.out.println("Can't write file into current folder/file doesn't exist");
+			else System.out.println("Can't write file into current directory/file doesn't exist");
 		}
 		catch(NullPointerException e){
 			e.printStackTrace();
@@ -203,7 +210,7 @@ public class FTPClientMav {
 			System.out.println("This path doesn't exist");
 		}
 		catch(FTPConnectionClosedException e){
-			System.out.println("Error. FTP connection is closed. Try to restart program");
+			ftpError = true;
 		}
 	}
 	public static boolean CanWrite(String path){
